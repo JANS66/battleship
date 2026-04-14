@@ -3,9 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Battleship JS</title>
   </head>
   <body>
-    <h2>test</h2>
+    <header>
+      <h1>BATTLESHIP</h1>
+      <div id="game-status">Game Start!</div>
+    </header>
+
+    <main id="game-container">
+      <section class="board-wrapper">
+        <h2>Your Fleet</h2>
+        <div id="player-board" class="board"></div>
+      </section>
+
+      <section class="board-wrapper">
+        <h2>Enemy Waters</h2>
+        <div id="computer-board" class="board"></div>
+      </section>
+    </main>
   </body>
 </html>
