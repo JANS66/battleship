@@ -45,6 +45,43 @@
   color: white;
 } /* Visual for miss */
 
+.draggable-ship {
+  background-color: #90a4ae;
+  margin: 10px;
+  cursor: grab;
+}
+
+/* Specific lengths for the dock view */
+.draggable-ship[data-length='5'] {
+  width: 200px;
+  height: 40px;
+}
+.draggable-ship[data-length='4'] {
+  width: 160px;
+  height: 40px;
+}
+.draggable-ship[data-length='3'] {
+  width: 120px;
+  height: 40px;
+}
+.draggable-ship[data-length='2'] {
+  width: 80px;
+  height: 40px;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Class to highlight potential drop zone */
+.drop-hover {
+  background-color: rgba(0, 255, 0, 0.3) !important;
+}
+
+.drop-invalid {
+  background-color: rgba(255, 0, 0, 0.3) !important;
+}
+
 /* Only hover on cells that havent been attacked yet */
 #computer-board .cell:not(.hit):not(.miss):hover {
   background-color: #b2ebf2; /* Slightly darker water */

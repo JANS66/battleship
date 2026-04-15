@@ -7,6 +7,10 @@ const domController = {
         const cellDiv = document.createElement('div');
         cellDiv.classList.add('cell');
 
+        // --- Setting the datasets ---
+        cellDiv.dataset.x = x;
+        cellDiv.dataset.y = y;
+
         // Styling based on state
         if (cell === 'hit') cellDiv.classList.add('hit');
         if (cell === 'miss') cellDiv.classList.add('miss');

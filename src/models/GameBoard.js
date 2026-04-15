@@ -1,3 +1,5 @@
+import Ship from './Ship';
+
 class GameBoard {
   constructor() {
     // A 10x10 board initialized with null
@@ -38,8 +40,8 @@ class GameBoard {
     this.ships.push(ship);
   }
 
-  placeShipsRandomly(shipsArray) {
-    shipsArray.forEach((ship) => {
+  placeShipsRandomly(lengthsArray) {
+    lengthsArray.forEach((length) => {
       let placed = false;
       while (!placed) {
         const x = Math.floor(Math.random() * 10);
@@ -47,7 +49,8 @@ class GameBoard {
         const vertical = Math.random() > 0.5;
 
         try {
-          this.placeShip(ship, x, y, vertical);
+          // Create a bran new Ship instance for every placement
+          this.placeShip(new Ship(length), x, y, vertical);
           placed = true;
         } catch (error) {}
       }
@@ -85,4 +88,4 @@ class GameBoard {
   }
 }
 
-module.exports = GameBoard;
+export default GameBoard;

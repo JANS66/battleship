@@ -1,7 +1,7 @@
 import './styles.css';
 import Player from './models/Player';
-import Ship from './models/Ship';
 import domController from './modules/domController';
+import dragDropController from './modules/dragDropController';
 
 // --- INITIALIZATION ---
 let player = new Player('Human');
@@ -9,39 +9,61 @@ let computer = new Player('Computer', true);
 let isGameOver = false;
 let gameStarted = false;
 
-// Define the fleet
-const getFleet = () => [
-  new Ship(5),
-  new Ship(4),
-  new Ship(3),
-  new Ship(3),
-  new Ship(2),
-];
+const initGame = () => {
+  // 1. Initial Render
+  domController.renderBoard(
+    player.board,
+    document.getElementById('player-board')
+  );
+  domController.renderBoard(
+    computer.board,
+    document.getElementById('computer-board')
+  );
 
-// --- PLACEMENT LOGIC ---
-const randomizeBoards = () => {
-  if (gameStarted) return;
+  // Ensure start button is disabled until all ships are placed
+  const startButton = document.getElementById('start-button');
+  startButton.disabled = true;
 
-  // Reset players/boards
-  player = new Player('Human');
-  computer = new Player('Computer', true);
+  // 2. Computer always places randomly
+  const fleetConfigs = [5, 4, 3, 2]; // Standard lengths
+  computer.board.placeShipsRandomly(fleetConfigs);
 
-  // Randomly place ships
-  player.board.placeShipsRandomly(getFleet());
-  computer.board.placeShipsRandomly(getFleet());
-
-  updateGame();
-  domController.updateStatus('Ships randomized. Ready for battle?');
+  // 3. Initialize Drag and Drop for Human
+  dragDropController(player, () => {
+    // handles rerendering after a drop
+    domController.renderBoard(
+      player.board,
+      document.getElementById('player-board')
+    );
+  });
 };
 
 const startGame = () => {
   gameStarted = true;
   document.getElementById('setup-controls').classList.add('hidden'); // Hide buttons
   domController.updateStatus('Game Started! Attack the enemy board.');
-  updateGame();
+  updateUI();
+};
+
+const updateUI = () => {
+  domController.renderBoard(
+    player.board,
+    document.getElementById('player-board')
+  );
+  domController.renderBoard(
+    computer.board,
+    document.getElementById('computer-board'),
+    gameStarted ? handleAttack : null
+  );
 };
 
 // --- GAME LOOP LOGIC ---
+
+const endGame = (message) => {
+  isGameOver = true;
+  domController.updateStatus(message);
+};
+
 const handleAttack = (x, y) => {
   // Prevent attacking before game starts
   if (isGameOver || !gameStarted) return;
@@ -51,7 +73,7 @@ const handleAttack = (x, y) => {
 
   // If attack was valid
   if (attackResult !== undefined) {
-    updateGame();
+    updateUI();
 
     if (computer.board.allShipsSunk()) {
       endGame('You Win! The enemy fleet is at the bottom of the sea.');
@@ -68,7 +90,7 @@ const computerTurn = () => {
   if (isGameOver) return;
 
   computer.makeRandomMove(player.board);
-  updateGame();
+  updateUI();
 
   if (player.board.allShipsSunk()) {
     endGame('Game Over! Your fleet has been destroyed.');
@@ -77,31 +99,5 @@ const computerTurn = () => {
   }
 };
 
-const updateGame = () => {
-  const playerBoardContainer = document.getElementById('player-board');
-  const computerBoardContainer = document.getElementById('computer-board');
-
-  // Render Player board
-  domController.renderBoard(player.board, playerBoardContainer);
-
-  // Render Computer board and pass handleAttack only if game has started
-  domController.renderBoard(
-    computer.board,
-    computerBoardContainer,
-    gameStarted ? handleAttack : null
-  );
-};
-
-const endGame = (message) => {
-  isGameOver = true;
-  domController.updateStatus(message);
-};
-
-// --- EVENT LISTENERS ---
-document
-  .getElementById('randomize-button')
-  .addEventListener('click', randomizeBoards);
 document.getElementById('start-button').addEventListener('click', startGame);
-
-// Initial Setup
-randomizeBoards();
+initGame();
