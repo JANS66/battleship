@@ -8,22 +8,50 @@ class GameBoard {
     this.ships = [];
   }
 
-  placeShip(ship, x, y) {
-    if (y + ship.length > 10) throw new Error('Ship out of bounds');
+  placeShip(ship, x, y, isVertical = false) {
+    // 1. BOUNDARY CHECK
+    // If vertical, check rows (x). If horizontal, check columns (y).
+    if (isVertical) {
+      if (x + ship.length > 10) throw new Error('Ship out of bounds');
+    } else {
+      if (y + ship.length > 10) throw new Error('Ship out of bounds');
+    }
 
-    // --- COLLISION DETECTION ---
+    // 2. COLLISION DETECTION
     for (let i = 0; i < ship.length; i++) {
-      if (this.board[x][y + i] !== null) {
+      const checkX = isVertical ? x + i : x;
+      const checkY = isVertical ? y : y + i;
+
+      if (this.board[checkX][checkY] !== null) {
         throw new Error('Ship collision');
       }
     }
 
-    // For now, place it horizontally.
-    // Store a reference to the ship in each board cell it occupies.
+    // 3. PLACEMENT
     for (let i = 0; i < ship.length; i++) {
-      this.board[x][y + i] = ship;
+      const placeX = isVertical ? x + i : x;
+      const placeY = isVertical ? y : y + i;
+
+      this.board[placeX][placeY] = ship;
     }
+
     this.ships.push(ship);
+  }
+
+  placeShipsRandomly(shipsArray) {
+    shipsArray.forEach((ship) => {
+      let placed = false;
+      while (!placed) {
+        const x = Math.floor(Math.random() * 10);
+        const y = Math.floor(Math.random() * 10);
+        const vertical = Math.random() > 0.5;
+
+        try {
+          this.placeShip(ship, x, y, vertical);
+          placed = true;
+        } catch (error) {}
+      }
+    });
   }
 
   receiveAttack(x, y) {

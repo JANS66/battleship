@@ -72,3 +72,13 @@ test('receiveAttack should not hit the same ship coordinate twice', () => {
 
   expect(ship.hits).toBe(1); // Should still only be 1
 });
+
+test('placeShip can place ships vertically', () => {
+  const board = new GameBoard();
+  const ship = new Ship(3);
+  board.placeShip(ship, 0, 0, true); // vertical
+
+  expect(board.board[0][0]).toBe(ship);
+  expect(board.board[1][0]).toBe(ship);
+  expect(board.board[2][0]).toBe(ship);
+});
