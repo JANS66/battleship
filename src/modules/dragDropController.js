@@ -22,7 +22,10 @@ const dragDropController = (player, renderCallback) => {
   });
 
   // --- Event Delegation on the Parent Board ---
-  const boardContainer = document.getElementById('player-board');
+  const oldBoard = document.getElementById('player-board');
+  // CLONE the board to strip all existing drag/drop event listeners
+  const boardContainer = oldBoard.cloneNode(true);
+  oldBoard.parentNode.replaceChild(boardContainer, oldBoard);
 
   boardContainer.addEventListener('dragover', (event) => {
     event.preventDefault(); // Required to allow drop

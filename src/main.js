@@ -3,101 +3,166 @@ import Player from './models/Player';
 import domController from './modules/domController';
 import dragDropController from './modules/dragDropController';
 
-// --- INITIALIZATION ---
-let player = new Player('Human');
-let computer = new Player('Computer', true);
+// --- STATE MANAGEMENT ---
+let player1 = new Player('Player 1');
+let player2 = new Player('Player 2');
+
+let activePlayer = player1;
+let opponent = player2;
+
 let isGameOver = false;
 let gameStarted = false;
+let isTransitioning = false; // Prevents peeking or clicking during transition
+let placementTurn = 1; // Track who is currently placing ships
 
 const initGame = () => {
-  // 1. Initial Render
-  domController.renderBoard(
-    player.board,
-    document.getElementById('player-board')
-  );
-  domController.renderBoard(
-    computer.board,
-    document.getElementById('computer-board')
-  );
+  domController.updateStatus(`${activePlayer.name}: Place your fleet`);
 
-  // Ensure start button is disabled until all ships are placed
+  // Reset start button
   const startButton = document.getElementById('start-button');
   startButton.disabled = true;
+  startButton.textContent = 'Finish Placement';
 
-  // 2. Computer always places randomly
-  const fleetConfigs = [5, 4, 3, 2]; // Standard lengths
-  computer.board.placeShipsRandomly(fleetConfigs);
+  // Render initial empty board for Player 1
+  domController.renderBoard(
+    activePlayer.board,
+    document.getElementById('player-board')
+  );
 
-  // 3. Initialize Drag and Drop for Human
-  dragDropController(player, () => {
-    // handles rerendering after a drop
+  // Initialize DnD for the first player
+  setupPlacementPhase();
+};
+
+const setupPlacementPhase = () => {
+  // Reset the dock, make sure hidden ships reappear for Player 2
+  document
+    .querySelectorAll('.draggable-ship')
+    .forEach((ship) => ship.classList.remove('hidden'));
+
+  dragDropController(activePlayer, () => {
     domController.renderBoard(
-      player.board,
+      activePlayer.board,
       document.getElementById('player-board')
     );
   });
 };
 
+const handlePlacementFinish = () => {
+  // Disable button so P2 cant click 'Start' without placing ships
+  document.getElementById('start-button').disabled = true;
+
+  if (placementTurn === 1) {
+    // Player 1 finished, move to Player 2
+    placementTurn = 2;
+    initiatePassDevice('Player 2', true); // true indicates that game is still in setup
+  } else {
+    // Player 2 finished, start the battle
+    startGame();
+  }
+};
+
 const startGame = () => {
   gameStarted = true;
   document.getElementById('setup-controls').classList.add('hidden'); // Hide buttons
-  domController.updateStatus('Game Started! Attack the enemy board.');
+  document.getElementById('setup-container').classList.add('hidden');
+  domController.updateStatus('Battle Started! Attack the enemy board.');
+
+  // Start the battle with P1 as active
+  activePlayer = player1;
+  opponent = player2;
   updateUI();
 };
 
 const updateUI = () => {
+  const playerBoardContainer = document.getElementById('player-board');
+  const opponentBoardContainer = document.getElementById('opponent-board'); // Labelled enemy waters in html
+
+  // Show active players ships
   domController.renderBoard(
-    player.board,
-    document.getElementById('player-board')
+    activePlayer.board,
+    playerBoardContainer,
+    null,
+    false
   );
+
+  // Hide opponents ships
   domController.renderBoard(
-    computer.board,
-    document.getElementById('computer-board'),
-    gameStarted ? handleAttack : null
+    opponent.board,
+    opponentBoardContainer,
+    handleAttack,
+    true
   );
 };
 
 // --- GAME LOOP LOGIC ---
 
-const endGame = (message) => {
-  isGameOver = true;
-  domController.updateStatus(message);
-};
-
 const handleAttack = (x, y) => {
   // Prevent attacking before game starts
-  if (isGameOver || !gameStarted) return;
+  if (isGameOver || isTransitioning || !gameStarted) return;
 
-  // 1. Player Attacks Computer
-  const attackResult = player.attack(computer.board, x, y);
+  // 1. Player Attacks Opponent
+  const attackResult = activePlayer.attack(opponent.board, x, y);
 
   // If attack was valid
   if (attackResult !== undefined) {
     updateUI();
 
-    if (computer.board.allShipsSunk()) {
-      endGame('You Win! The enemy fleet is at the bottom of the sea.');
+    if (opponent.board.allShipsSunk()) {
+      isGameOver = true;
+      domController.updateStatus(`${activePlayer.name} Wins!`);
       return;
     }
 
-    // 2. Computer Attacks Player (with a slight delay for realism)
-    domController.updateStatus('Computer is calculating...');
-    setTimeout(computerTurn, 600);
+    isTransitioning = true;
+    setTimeout(() => initiatePassDevice(opponent.name, false), 1000); // 1s to see the hit result
   }
 };
 
-const computerTurn = () => {
-  if (isGameOver) return;
+const initiatePassDevice = (nextPlayerName, isStillSetup) => {
+  // 1. Hide the boards
+  document.getElementById('game-container').classList.add('hidden');
 
-  computer.makeRandomMove(player.board);
-  updateUI();
+  // 2. SHow the pass screen
+  domController.updatePassScreen(nextPlayerName);
+  domController.showScreen('pass-device-screen');
+};
 
-  if (player.board.allShipsSunk()) {
-    endGame('Game Over! Your fleet has been destroyed.');
+const completePassDevice = () => {
+  domController.hideScreen('pass-device-screen');
+  document.getElementById('game-container').classList.remove('hidden');
+
+  // SWAP ROLES HERE: The person who just sat down is now the Active Player
+  [activePlayer, opponent] = [opponent, activePlayer];
+
+  if (!gameStarted) {
+    // Player 2 is now active
+    domController.updateStatus(`${activePlayer.name}: Place your fleet`);
+    initGameForPlayer2();
   } else {
-    domController.updateStatus('Your Turn! Choose a coordinate.');
+    domController.updateStatus(`${activePlayer.name} Turn`);
+    updateUI();
   }
+
+  isTransitioning = false;
 };
 
-document.getElementById('start-button').addEventListener('click', startGame);
+const initGameForPlayer2 = () => {
+  domController.renderBoard(
+    activePlayer.board,
+    document.getElementById('player-board')
+  );
+  const startButton = document.getElementById('start-button');
+  startButton.disabled = true;
+  startButton.textContent = 'Start Battle';
+  setupPlacementPhase();
+};
+
+// --- EVENT LISTENERS ---
+document
+  .getElementById('start-button')
+  .addEventListener('click', handlePlacementFinish);
+document
+  .getElementById('continue-button')
+  .addEventListener('click', completePassDevice);
+
 initGame();
