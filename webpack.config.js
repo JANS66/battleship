@@ -9,6 +9,7 @@ module.exports = {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist'),
     clean: true,
+    publicPath: '', // Ensures relative paths work on subdomains
   },
   plugins: [
     new HtmlWebpackPlugin({ template: './src/index.html' }),
