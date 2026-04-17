@@ -2,6 +2,7 @@ import './styles.css';
 import Player from './models/Player';
 import domController from './modules/domController';
 import dragDropController from './modules/dragDropController';
+import AI from './models/AI';
 
 // --- STATE MANAGEMENT ---
 let player1 = new Player('Player 1');
@@ -14,6 +15,24 @@ let isGameOver = false;
 let gameStarted = false;
 let isTransitioning = false; // Prevents peeking or clicking during transition
 let placementTurn = 1; // Track who is currently placing ships
+
+let gameMode = null;
+
+const selectMode = (mode) => {
+  gameMode = mode;
+  domController.hideScreen('menu-screen');
+
+  if (gameMode === 'ai') {
+    // RE ASSIGN player2 to be an instance of the AI class
+    player2 = new AI();
+    opponent = player2; // Ensure the opponent reference is updated
+
+    // AI places ships immediately
+    player2.board.placeShipsRandomly([5, 4, 3, 2]);
+  }
+
+  initGame(); // Starts the placement phase for Player 1
+};
 
 const initGame = () => {
   domController.updateStatus(`${activePlayer.name}: Place your fleet`);
@@ -51,25 +70,35 @@ const handlePlacementFinish = () => {
   // Disable button so P2 cant click 'Start' without placing ships
   document.getElementById('start-button').disabled = true;
 
+  if (gameMode === 'ai') {
+    startGame();
+    return; // Exit early so we dont trigger pass device
+  }
+
+  // If we are playing PVP
   if (placementTurn === 1) {
-    // Player 1 finished, move to Player 2
+    // Player 1 to Player 2 transition
     placementTurn = 2;
     initiatePassDevice('Player 2', true); // true indicates that game is still in setup
   } else {
-    // Player 2 finished, start the battle
-    startGame();
+    // Player 2 to Player 1 transition
+    // Set gameStarted to true FIRST so that completePassDevice knows
+    // to run the battle logic instead of placement logic
+    gameStarted = true;
+    initiatePassDevice('Player 1', false);
   }
 };
 
 const startGame = () => {
-  gameStarted = true;
+  // Hide setup UI
   document.getElementById('setup-controls').classList.add('hidden'); // Hide buttons
   document.getElementById('setup-container').classList.add('hidden');
-  domController.updateStatus('Battle Started! Attack the enemy board.');
 
   // Start the battle with P1 as active
   activePlayer = player1;
   opponent = player2;
+
+  domController.updateStatus('Battle Started! Attack the enemy board.');
   updateUI();
 };
 
@@ -94,28 +123,61 @@ const updateUI = () => {
   );
 };
 
+const handleRandomize = () => {
+  // Clear the current logical board and ships array
+  activePlayer.board.resetBoard();
+  activePlayer.board.placeShipsRandomly([5, 4, 3, 2]);
+
+  // Render and update UI
+  domController.renderBoard(
+    activePlayer.board,
+    document.getElementById('player-board')
+  );
+
+  // Hide the dock ships
+  document
+    .querySelectorAll('.draggable-ship')
+    .forEach((ship) => ship.classList.add('hidden'));
+
+  // Enable the start button
+  document.getElementById('start-button').disabled = false;
+};
+
 // --- GAME LOOP LOGIC ---
 
 const handleAttack = (x, y) => {
-  // Prevent attacking before game starts
   if (isGameOver || isTransitioning || !gameStarted) return;
 
-  // 1. Player Attacks Opponent
-  const attackResult = activePlayer.attack(opponent.board, x, y);
+  const result = activePlayer.attack(opponent.board, x, y);
+  if (result === undefined) return; // Invalid move
 
-  // If attack was valid
-  if (attackResult !== undefined) {
-    updateUI();
+  updateUI();
 
-    if (opponent.board.allShipsSunk()) {
-      isGameOver = true;
-      domController.updateStatus(`${activePlayer.name} Wins!`);
-      return;
-    }
-
-    isTransitioning = true;
-    setTimeout(() => initiatePassDevice(opponent.name, false), 1000); // 1s to see the hit result
+  if (opponent.board.allShipsSunk()) {
+    return domController.updateStatus(`${activePlayer.name} Wins!`);
   }
+
+  if (gameMode === 'pvp') {
+    isTransitioning = true;
+    setTimeout(() => initiatePassDevice(opponent.name, false), 1000);
+  } else {
+    // VS Computer Mode
+    isTransitioning = true; // Disable clicks during AI thinking
+    setTimeout(computerTurn, 800);
+  }
+};
+
+const computerTurn = () => {
+  // Use the smartAttack method
+  const { result } = player2.smartAttack(player1.board);
+
+  updateUI();
+
+  if (player1.board.allShipsSunk()) {
+    return domController.updateStatus(`Computer Wins!`);
+  }
+
+  isTransitioning = false; // Allow clicks
 };
 
 const initiatePassDevice = (nextPlayerName, isStillSetup) => {
@@ -131,16 +193,27 @@ const completePassDevice = () => {
   domController.hideScreen('pass-device-screen');
   document.getElementById('game-container').classList.remove('hidden');
 
-  // SWAP ROLES HERE: The person who just sat down is now the Active Player
-  [activePlayer, opponent] = [opponent, activePlayer];
-
-  if (!gameStarted) {
-    // Player 2 is now active
+  // Logic for setup phase
+  if (placementTurn === 2 && !gameStarted) {
+    [activePlayer, opponent] = [opponent, activePlayer];
     domController.updateStatus(`${activePlayer.name}: Place your fleet`);
     initGameForPlayer2();
-  } else {
-    domController.updateStatus(`${activePlayer.name} Turn`);
-    updateUI();
+    return;
+  }
+
+  // Logic for Battle Phase
+  if (gameStarted) {
+    const statusText = document.getElementById('game-status').textContent;
+    if (statusText === 'Arrange your fleet!' || placementTurn === 2) {
+      startGame();
+      // Reset placementTurn so this block doesnt repeat incorrectly
+      placementTurn = 0;
+    } else {
+      // Standard turn swap during gameplay
+      [activePlayer, opponent] = [opponent, activePlayer];
+      domController.updateStatus(`${activePlayer.name}'s Turn`);
+      updateUI();
+    }
   }
 
   isTransitioning = false;
@@ -164,5 +237,12 @@ document
 document
   .getElementById('continue-button')
   .addEventListener('click', completePassDevice);
-
-initGame();
+document
+  .getElementById('vs-computer-button')
+  .addEventListener('click', () => selectMode('ai'));
+document
+  .getElementById('vs-player-button')
+  .addEventListener('click', () => selectMode('pvp'));
+document
+  .getElementById('randomize-button')
+  .addEventListener('click', handleRandomize);

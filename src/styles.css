@@ -73,7 +73,8 @@
   display: none !important;
 }
 
-#pass-device-screen {
+#pass-device-screen,
+.overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -84,6 +85,7 @@
   justify-content: center;
   align-items: center;
   z-index: 999;
+  color: #fff;
 }
 
 /* Class to highlight potential drop zone */

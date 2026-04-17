@@ -86,6 +86,14 @@ class GameBoard {
     // Check if every ship in ships array is sunk
     return this.ships.every((ship) => ship.isSunk());
   }
+
+  resetBoard() {
+    this.board = Array(10)
+      .fill(null)
+      .map(() => Array(10).fill(null));
+    this.ships = [];
+    this.missedAttacks = [];
+  }
 }
 
 export default GameBoard;
