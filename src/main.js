@@ -90,6 +90,8 @@ const handlePlacementFinish = () => {
 };
 
 const startGame = () => {
+  gameStarted = true;
+
   // Hide setup UI
   document.getElementById('setup-controls').classList.add('hidden'); // Hide buttons
   document.getElementById('setup-container').classList.add('hidden');
@@ -154,7 +156,7 @@ const handleAttack = (x, y) => {
   updateUI();
 
   if (opponent.board.allShipsSunk()) {
-    return domController.updateStatus(`${activePlayer.name} Wins!`);
+    return endGame(activePlayer.name);
   }
 
   if (gameMode === 'pvp') {
@@ -169,15 +171,19 @@ const handleAttack = (x, y) => {
 
 const computerTurn = () => {
   // Use the smartAttack method
-  const { result } = player2.smartAttack(player1.board);
-
+  player2.smartAttack(player1.board);
   updateUI();
 
   if (player1.board.allShipsSunk()) {
-    return domController.updateStatus(`Computer Wins!`);
+    return endGame('Computer');
   }
 
-  isTransitioning = false; // Allow clicks
+  isTransitioning = false;
+};
+
+const endGame = (winnerName) => {
+  isGameOver = true;
+  domController.updateStatus(`${winnerName} Wins!`);
 };
 
 const initiatePassDevice = (nextPlayerName, isStillSetup) => {

@@ -1,5 +1,5 @@
-const GameBoard = require('../../src/models/GameBoard');
-const Ship = require('../../src/models/Ship');
+import GameBoard from '../../src/models/GameBoard';
+import Ship from '../../src/models/Ship';
 
 test('Gameboard can place a ship at specific coordinates', () => {
   const board = new GameBoard();

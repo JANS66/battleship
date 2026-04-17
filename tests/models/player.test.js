@@ -1,5 +1,5 @@
-const Player = require('../../src/models/Player');
-const GameBoard = require('../../src/models/GameBoard');
+import Player from '../../src/models/Player';
+import GameBoard from '../../src/models/GameBoard';
 
 describe('Player Logic', () => {
   test('each player should have their own GameBoard', () => {

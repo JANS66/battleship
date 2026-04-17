@@ -1,4 +1,4 @@
-const Ship = require('../../src/models/Ship');
+import Ship from '../../src/models/Ship';
 
 test('ship should not be sunk initially', () => {
   const ship = new Ship(3);
