@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Battleship JS</title>
+  <script defer src="bundle.js"></script><link href="styles.css" rel="stylesheet"></head>
+  <body>
+    <div id="menu-screen" class="overlay">
+      <div class="modal-content">
+        <h1>BATTLESHIP</h1>
+        <p>Select Game Mode</p>
+        <div class="menu-buttons">
+          <button id="vs-computer-button">VS Computer</button>
+          <button id="vs-player-button">Local 2 Player</button>
+        </div>
+      </div>
+    </div>
+
+    <header>
+      <h1>BATTLESHIP</h1>
+      <div id="game-status">Arrange your fleet!</div>
+      <div id="setup-controls">
+        <button id="randomize-button">Randomize My Ships</button>
+        <button id="start-button">Start Battle</button>
+      </div>
+      <div id="setup-container">
+        <div id="ship-dock">
+          <div
+            class="draggable-ship"
+            draggable="true"
+            data-length="5"
+            data-id="carrier"
+          ></div>
+          <div
+            class="draggable-ship"
+            draggable="true"
+            data-length="4"
+            data-id="battleship"
+          ></div>
+          <div
+            class="draggable-ship"
+            draggable="true"
+            data-length="3"
+            data-id="destroyer"
+          ></div>
+          <div
+            class="draggable-ship"
+            draggable="true"
+            data-length="2"
+            data-id="patrol-boat"
+          ></div>
+        </div>
+        <button id="axis-button">Axis Horizontal</button>
+      </div>
+    </header>
+
+    <main id="game-container">
+      <section class="board-wrapper">
+        <h2>Your Fleet</h2>
+        <div id="player-board" class="board"></div>
+      </section>
+
+      <section class="board-wrapper">
+        <h2>Enemy Waters</h2>
+        <div id="opponent-board" class="board"></div>
+      </section>
+    </main>
+
+    <div id="pass-device-screen" class="hidden">
+      <div class="modal-content">
+        <h2 id="next-player-name">Player 2's Turn</h2>
+        <p>Please pass the device to the next player.</p>
+        <button id="continue-button">I am ready!</button>
+      </div>
+    </div>
+  </body>
+</html>
