@@ -6,6 +6,7 @@
   --ship-color: #5d6d7e;
   --water-color: #152a3d;
   --text-primary: #e0e0e0;
+  /* Default cell size for desktop */
   --cell-size: 35px;
 }
 
@@ -36,8 +37,9 @@ header {
 }
 
 h1 {
-  font-size: 3rem;
-  letter-spacing: 8px;
+  /* Use clamp to scale title between 1.5rem and 3rem */
+  font-size: clamp(1.5rem, 8vw, 3rem);
+  letter-spacing: clamp(2px, 2vw, 8px);
   color: var(--accent-color);
   text-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
   margin-bottom: 10px;
@@ -52,17 +54,19 @@ h1 {
 
 #game-container {
   display: flex;
-  gap: 50px;
+  gap: 20px; /* Reduced gap for better fit */
   flex-wrap: wrap;
   justify-content: center;
+  width: 100%;
 }
 
 .board-wrapper {
   background: var(--panel-bg);
-  padding: 20px;
+  padding: 10px; /* Reduced padding for mobile */
   border-radius: 10px;
   border: 1px solid #2c3e50;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  max-width: 100%; /* Ensure it doesn't overflow */
 }
 
 .board-wrapper h2 {
@@ -220,12 +224,48 @@ button:hover {
   background-color: var(--danger-color);
 }
 
-/* Responsive tweaks */
-@media (max-width: 800px) {
+/* --- Responsive Breakpoints --- */
+
+/* Medium Devices (Tablets) */
+@media (max-width: 900px) {
   :root {
-    --cell-size: 28px;
+    --cell-size: 30px;
   }
   #game-container {
-    gap: 20px;
+    gap: 15px;
+  }
+}
+
+/* Small Devices (Mobile) */
+@media (max-width: 480px) {
+  :root {
+    /* Smaller cells to ensure 10x10 fits on ~320px screens */
+    --cell-size: 25px;
+  }
+
+  body {
+    padding: 10px;
+  }
+
+  .board-wrapper {
+    padding: 5px;
+  }
+
+  /* Stack the boards vertically on very small screens */
+  #game-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  #ship-dock {
+    flex-wrap: wrap; /* Prevent dock from overflowing */
+    gap: 10px;
+  }
+}
+
+/* Extra Small Devices */
+@media (max-width: 350px) {
+  :root {
+    --cell-size: 22px;
   }
 }
