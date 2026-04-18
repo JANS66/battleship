@@ -1,6 +1,6 @@
 import Player from './Player';
 
-class AI extends Player {
+export default class AI extends Player {
   constructor() {
     super('Computer');
     this.lastHit = null;
@@ -35,25 +35,27 @@ class AI extends Player {
   }
 
   generateAdjacentTargets(x, y, board) {
-    const coords = [
-      [x + 1, y],
-      [x - 1, y],
-      [x, y + 1],
-      [x, y - 1],
+    const directions = [
+      [1, 0],
+      [-1, 0],
+      [0, 1],
+      [0, -1],
     ];
 
-    coords.forEach(([nx, ny]) => {
-      // Validation
-      // Check if withing bounds AND not already attacked
+    directions.forEach(([dx, dy]) => {
+      const nx = x + dx;
+      const ny = y + dy;
+
       if (nx >= 0 && nx < 10 && ny >= 0 && ny < 10) {
         const status = board.board[nx][ny];
-        if (status !== 'hit' && status !== 'miss') {
-          // Add to the start of the queue to prioritize these
+        const isAlreadyInQueue = this.potentialTargets.some(
+          ([px, py]) => px === nx && py === ny
+        );
+
+        if (status !== 'hit' && status !== 'miss' && !isAlreadyInQueue) {
           this.potentialTargets.push([nx, ny]);
         }
       }
     });
   }
 }
-
-export default AI;

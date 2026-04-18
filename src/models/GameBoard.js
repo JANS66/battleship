@@ -1,6 +1,6 @@
 import Ship from './Ship';
 
-class GameBoard {
+export default class GameBoard {
   constructor() {
     // A 10x10 board initialized with null
     this.board = Array(10)
@@ -60,22 +60,18 @@ class GameBoard {
   receiveAttack(x, y) {
     const target = this.board[x][y];
 
-    // 1. Guard Clause: If the spot is already "hit" or "miss", stop immediately.
-    if (target === 'hit' || target === 'miss') {
-      return;
-    }
+    // Return null to signify an invalid move (already hit/missed)
+    if (target === 'hit' || target === 'miss') return null;
 
-    // 2. Handle a Hit
-    if (target !== null && typeof target === 'object') {
+    if (target && typeof target === 'object') {
       target.hit();
-      this.board[x][y] = 'hit'; // Mark the board
-      return true;
+      this.board[x][y] = 'hit';
+      return true; // Hit
     }
 
-    // 3. Handle a Miss
-    this.board[x][y] = 'miss'; // Mark the board
-    this.missedAttacks.push([x, y]); // Kepp this for UI/display logic
-    return false;
+    this.board[x][y] = 'miss';
+    this.missedAttacks.push([x, y]);
+    return false; // Miss
   }
 
   getMissedAttacks() {
@@ -95,5 +91,3 @@ class GameBoard {
     this.missedAttacks = [];
   }
 }
-
-export default GameBoard;

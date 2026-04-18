@@ -1,6 +1,6 @@
 import Ship from '../models/Ship';
 
-const dragDropController = (player, renderCallback) => {
+export const dragDropController = (player, renderCallback) => {
   let currentAxis = 'horizontal';
   let draggedShipLength = null;
   let draggedShipElement = null;
@@ -65,5 +65,3 @@ const dragDropController = (player, renderCallback) => {
     }
   };
 };
-
-export default dragDropController;

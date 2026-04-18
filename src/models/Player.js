@@ -1,9 +1,8 @@
 import GameBoard from './GameBoard';
 
-class Player {
-  constructor(name, isComputer = false) {
+export default class Player {
+  constructor(name) {
     this.name = name;
-    this.isComputer = isComputer;
     this.board = new GameBoard();
   }
 
@@ -12,25 +11,4 @@ class Player {
   attack(opponentBoard, x, y) {
     return opponentBoard.receiveAttack(x, y);
   }
-
-  // Computer AI logic:
-  // Continues to pick random coordinates until receiveAttack
-  // returns a valid result (true or false) rather than undefined.
-  makeRandomMove(opponentBoard) {
-    if (!this.isComputer) return;
-
-    let x, y, result;
-
-    do {
-      x = Math.floor(Math.random() * 10);
-      y = Math.floor(Math.random() * 10);
-
-      // Relying on GameBoard to return undefined for duplicate moves
-      result = this.attack(opponentBoard, x, y);
-    } while (result === undefined);
-
-    return [x, y];
-  }
 }
-
-export default Player;

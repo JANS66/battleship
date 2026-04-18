@@ -1,49 +1,105 @@
-const domController = {
+const elements = {
+  playerBoard: document.getElementById('player-board'),
+  opponentBoard: document.getElementById('opponent-board'),
+  gameStatus: document.getElementById('game-status'),
+  setupControls: document.getElementById('setup-controls'),
+  setupContainer: document.getElementById('setup-container'),
+  startButton: document.getElementById('start-button'),
+};
+
+export const domController = {
   renderBoard: (gameBoard, container, clickHandler, isOpponent = false) => {
-    container.innerHTML = ''; // Clear the board
+    // We create a fragment to minimize "reflows" (re-painting the screen)
+    const fragment = document.createDocumentFragment();
+    container.innerHTML = '';
 
     gameBoard.board.forEach((row, x) => {
       row.forEach((cell, y) => {
         const cellDiv = document.createElement('div');
-        cellDiv.classList.add('cell');
-
-        // --- Setting the datasets ---
+        cellDiv.className = 'cell';
         cellDiv.dataset.x = x;
         cellDiv.dataset.y = y;
 
-        // 1. Always show hits and misses (Public knowledge)
         if (cell === 'hit') cellDiv.classList.add('hit');
         if (cell === 'miss') cellDiv.classList.add('miss');
 
-        // 2. Logic for showing ships (Private knowledge)
-        // Use isOpponent flag instead of container ID.
-        // Only add the 'ship' class if there is a ship AND it is not the opponents board.
         const isShip = typeof cell === 'object' && cell !== null;
-        if (isShip && !isOpponent) {
-          cellDiv.classList.add('ship');
-        }
+        if (isShip && !isOpponent) cellDiv.classList.add('ship');
 
-        // 3. Event Listeners
-        // Only attach clicks if a handler is provided
-        if (clickHandler && cell !== 'hit' && cell !== 'miss') {
-          cellDiv.addEventListener('click', () => clickHandler(x, y));
-        }
-
-        container.appendChild(cellDiv);
+        fragment.appendChild(cellDiv);
       });
     });
+
+    container.appendChild(fragment);
+
+    // Event Delegation: One listener for the whole board
+    if (clickHandler) {
+      // Remove old listener to prevent memory leaks if container is reused
+      container.onclick = (e) => {
+        const cell = e.target.closest('.cell');
+        if (!cell) return;
+        const { x, y } = cell.dataset;
+        clickHandler(Number(x), Number(y));
+      };
+    }
   },
 
   updateStatus: (message) => {
-    document.getElementById('game-status').textContent = message;
+    elements.gameStatus.textContent = message;
+    // Adding a small animation trigger here is a nice UX touch
+    elements.gameStatus.classList.remove('pulse');
+    void elements.gameStatus.offsetWidth; // Trigger reflow
+    elements.gameStatus.classList.add('pulse');
   },
 
-  showScreen: (screenId) => {
-    document.getElementById(screenId).classList.remove('hidden');
+  resetDock: () => {
+    document
+      .querySelectorAll('.draggable-ship')
+      .forEach((ship) => ship.classList.remove('hidden'));
   },
 
-  hideScreen: (screenId) => {
-    document.getElementById(screenId).classList.add('hidden');
+  setDock: () => {
+    document
+      .querySelectorAll('.draggable-ship')
+      .forEach((ship) => ship.classList.add('hidden'));
+  },
+
+  enableStartButton: () => {
+    elements.startButton.disabled = false;
+  },
+
+  disableStartButton: (message = null) => {
+    if (message) elements.startButton.textContent = message;
+    elements.startButton.disabled = true;
+  },
+
+  hideSetup: () => {
+    elements.setupControls.classList.add('hidden'); // Hide buttons
+    elements.setupContainer.classList.add('hidden');
+  },
+
+  hideBoards: () => {
+    document.getElementById('game-container').classList.add('hidden');
+  },
+
+  showBoards: () => {
+    document.getElementById('game-container').classList.remove('hidden');
+  },
+
+  updateStatus: (message) => {
+    elements.gameStatus.textContent = message;
+  },
+
+  showPassScreen: () => {
+    document.getElementById('pass-device-screen').classList.remove('hidden');
+  },
+
+  hidePassScreen: () => {
+    document.getElementById('pass-device-screen').classList.add('hidden');
+  },
+
+  hideMenu: () => {
+    document.getElementById('menu-screen').classList.add('hidden');
   },
 
   updatePassScreen: (nextPlayerName) => {
@@ -51,5 +107,3 @@ const domController = {
       `${nextPlayerName}'s Turn`;
   },
 };
-
-export default domController;
